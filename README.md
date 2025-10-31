@@ -2,7 +2,7 @@
 
 ## *Project Idea*
 
-This project aims to explore the relationship between **climate change variables** (temperature and precipitation) and **agricultural crop yield** across Türkiye’s regions.  
+This project aims to explore the relationship between **climate change variables** and **agricultural crop yield** across Türkiye’s regions.  
 The hypothesis is that provinces or regions experiencing higher average temperatures and lower precipitation over time will exhibit **decreased crop productivity** (kg per decare).  
 
 By combining historical meteorological data from the Turkish State Meteorological Service (MGM) with crop yield statistics from the Turkish Statistical Institute (TÜİK), the project will identify whether changes in climate indicators are statistically correlated with agricultural performance — and if certain crops (wheat, barley, corn, cotton, etc.) are more sensitive to climate fluctuations.
