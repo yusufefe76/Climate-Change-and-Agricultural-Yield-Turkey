@@ -1,0 +1,151 @@
+#%% 1. ADIM: Kütüphaneler ve Veri İndirme
+import kagglehub
+import pandas as pd
+import seaborn as sns
+import matplotlib.pyplot as plt
+from scipy import stats
+import os
+
+# Konsol temizliği
+print("\033[H\033[J") 
+print("--- PROJE BAŞLATILIYOR (DÜZELTİLMİŞ VERSİYON) ---")
+
+# Kagglehub ile verileri indir
+path_happy = kagglehub.dataset_download("PromptCloudHQ/world-happiness-report-2019")
+path_econ = kagglehub.dataset_download("lewisduncan93/the-economic-freedom-index")
+
+#%% 2. ADIM: Veri Yükleme ve Temizleme
+def find_csv(path):
+    files = [f for f in os.listdir(path) if f.endswith('.csv')]
+    if files:
+        return os.path.join(path, files[0])
+    return None
+
+happy_file = find_csv(path_happy)
+econ_file = find_csv(path_econ)
+
+# Okuma (Encoding önlemli)
+try:
+    happy_df = pd.read_csv(happy_file)
+except:
+    happy_df = pd.read_csv(happy_file, encoding='latin-1')
+
+try:
+    econ_df = pd.read_csv(econ_file)
+except:
+    econ_df = pd.read_csv(econ_file, encoding='latin-1')
+
+print("\nVeriler yüklendi...")
+
+# Sütun isimlerinden boşlukları temizle
+happy_df.columns = [c.strip() for c in happy_df.columns]
+econ_df.columns  = [c.strip() for c in econ_df.columns]
+
+# --- İSİMLENDİRME DÜZELTMESİ (RANK OLARAK AYARLIYORUZ) ---
+rename_map_happy = {
+    'Country (region)': 'Country',
+    'Country or region': 'Country',
+    'Ladder': 'Happiness_Rank',      # DÜZELTME: Artık buna RANK diyoruz
+    'Score': 'Happiness_Rank',       # Eğer Score varsa bile bu veri setinde rank veriyor
+}
+
+rename_map_econ = {
+    'Name': 'Country',
+    'Country Name': 'Country',
+    'Index Year': 'Year',
+    '2019 Score': 'Index Score',
+    'Score': 'Index Score',
+    'Overall Score': 'Index Score'
+}
+
+# Önce rename yap
+happy_df.rename(columns={k: v for k, v in rename_map_happy.items() if k in happy_df.columns},
+                inplace=True)
+econ_df.rename(columns={k: v for k, v in rename_map_econ.items() if k in econ_df.columns},
+               inplace=True)
+
+# SONRA duplicate sütunları temizle (rename sonrası oluşan kopyaları da siler)
+happy_df = happy_df.loc[:, ~happy_df.columns.duplicated()]
+econ_df  = econ_df.loc[:,  ~econ_df.columns.duplicated()]
+
+# Yıl Filtresi
+if 'Year' in econ_df.columns:
+    econ_2019 = econ_df[econ_df['Year'] == 2019].copy()
+else:
+    econ_2019 = econ_df.copy()
+
+# Ülke Eşleştirme
+country_map = {
+    'United States': 'United States',
+    'Hong Kong SAR, China': 'Hong Kong',
+    'Czech Republic': 'Czechia',
+    'Korea, South': 'South Korea',
+    'Taiwan': 'Taiwan Province of China',
+    'Turkey': 'Turkey',
+    'Turkiye': 'Turkey'
+}
+
+if 'Country' in happy_df.columns:
+    happy_df['Country'] = happy_df['Country'].replace(country_map)
+if 'Country' in econ_2019.columns:
+    econ_2019['Country'] = econ_2019['Country'].replace(country_map)
+
+# Birleştirme
+if 'Country' in happy_df.columns and 'Country' in econ_2019.columns:
+    merged_df = pd.merge(happy_df, econ_2019, on='Country', how='inner')
+    merged_df.to_csv('final_dataset_2019.csv', index=False)
+    print(f"✅ BİRLEŞTİRME BAŞARILI: {len(merged_df)} ülke eşleşti.")
+else:
+    print("❌ HATA: Country sütunu bulunamadı.")
+
+
+#%% 3. ADIM: EDA (Grafikler)
+print("\n3. Grafikler hazırlanıyor...")
+sns.set_style("whitegrid")
+
+# A. Scatter Plot (Ters İlişkiyi Göstermek İçin)
+if 'Index Score' in merged_df.columns and 'Happiness_Rank' in merged_df.columns:
+    plt.figure(figsize=(10, 6))
+    
+    # Sıralama olduğu için Y eksenini ters çevirelim (1 numara en üstte olsun)
+    sns.regplot(data=merged_df, x='Index Score', y='Happiness_Rank', 
+                line_kws={"color": "red"}, scatter_kws={'alpha':0.6})
+    
+    plt.gca().invert_yaxis() # EKSENİ TERS ÇEVİRİYORUZ (1 Numara Yukarı)
+    
+    plt.title("Ekonomik Özgürlük vs Mutluluk Sıralaması")
+    plt.xlabel("Ekonomik Özgürlük Skoru (Yüksek = Özgür)")
+    plt.ylabel("Mutluluk Sıralaması (Yukarı Çıktıkça İYİLEŞİR)")
+    plt.show()
+    print("   -> Scatter plot çizildi (Y ekseni ters çevrildi).")
+
+#%% 4. ADIM: Hipotez Testi (Rank Mantığına Göre)
+print("\n4. Hipotez Testi Sonuçları:")
+
+if 'Index Score' in merged_df.columns and 'Happiness_Rank' in merged_df.columns:
+    threshold = merged_df['Index Score'].median()
+    
+    # Özgürlüğü Yüksek ve Düşük Olanlar
+    group_high_freedom = merged_df[merged_df['Index Score'] >= threshold]['Happiness_Rank']
+    group_low_freedom = merged_df[merged_df['Index Score'] < threshold]['Happiness_Rank']
+    
+    t_stat, p_val = stats.ttest_ind(group_high_freedom, group_low_freedom)
+    
+    high_mean = group_high_freedom.mean()
+    low_mean = group_low_freedom.mean()
+    
+    print("-" * 50)
+    print(f"Yüksek Özgürlük Grubu Ort. Sıralaması: {high_mean:.1f}. Sıra (Daha İyi)")
+    print(f"Düşük Özgürlük Grubu Ort. Sıralaması : {low_mean:.1f}. Sıra (Daha Kötü)")
+    print(f"P-Değeri: {p_val:.10f}")
+    print("-" * 50)
+    
+    # Yorumlama Mantığı: RANK düştükçe mutluluk artar
+    if p_val < 0.05:
+        print("SONUÇ: Fark ANLAMLI.")
+        if high_mean < low_mean:
+            print("YORUM: Ekonomik özgürlüğü yüksek ülkeler, sıralamada daha üsttedir (Daha Mutludur). ✅")
+        else:
+            print("YORUM: Beklenmedik sonuç (Özgür ülkeler daha mutsuz).")
+    else:
+        print("SONUÇ: Anlamlı bir fark yok.")
