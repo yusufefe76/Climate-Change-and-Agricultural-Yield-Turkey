@@ -13,23 +13,19 @@ By combining historical meteorological data from the Turkish State Meteorologica
 
 The project will utilize two primary datasets:
 
-### *Agricultural Production Dataset (Yield Statistics)*  
-- **Source:** https://data.tuik.gov.tr/  
+### *Agricultural Production Dataset (Yield Statistics)* - **Source:** https://data.tuik.gov.tr/  
 - **Coverage:** Annual crop yield (kg/decare) for key crops such as wheat, barley, corn, cotton, sunflower, etc.  
 - **Geographical Unit:** Province or NUTS-2 regional level (to be aggregated into 7 regions if needed)  
 - **Temporal Range:** 2005 – 2024  
-- **Variables:**  
-  - Crop type  
+- **Variables:** - Crop type  
   - Region/Province code  
   - Year  
   - Yield (kg/decare)  
 
-### *Meteorological Dataset (Climate Indicators)*  
-- **Source:** https://www.mgm.gov.tr/veridegerlendirme/il-ve-ilceler-istatistik.aspx  
+### *Meteorological Dataset (Climate Indicators)* - **Source:** https://www.mgm.gov.tr/veridegerlendirme/il-ve-ilceler-istatistik.aspx  
 - **Coverage:** Monthly or annual average temperature (°C) and total precipitation (mm) per province  
 - **Temporal Range:** 2005 – 2024  
-- **Variables:**  
-  - Province name  
+- **Variables:** - Province name  
   - Average temperature  
   - Total precipitation  
   - Year  
@@ -39,33 +35,31 @@ The project will utilize two primary datasets:
 ## *Plan*
 
 ### *Data Collection*
-- **Agricultural Data Sources:**  
-  - TÜİK Open Data Portal → “Bitkisel Üretim İstatistikleri” tables  
+- **Agricultural Data Sources:** - TÜİK Open Data Portal → “Bitkisel Üretim İstatistikleri” tables  
   - Data cleaning and transformation into time-series per crop  
 
-- **Climate Data Sources:**  
-  - MGM “İl ve İlçeler İstatistikleri” for temperature and rainfall  
+- **Climate Data Sources:** - MGM “İl ve İlçeler İstatistikleri” for temperature and rainfall  
   - Aggregation from monthly → annual averages per province  
 
 ---
 
 ### *Data Analysis Approach*
 
-1. **Exploratory Data Analysis (EDA)**  
-   - Visualize yearly trends of temperature, rainfall, and crop yield  
+1. **Exploratory Data Analysis (EDA)** - Visualize yearly trends of temperature, rainfall, and crop yield  
    - Map spatial patterns of average yield vs. climate conditions  
    - Identify outlier years (extreme droughts, heatwaves, etc.)  
 
-2. **Statistical Analysis**  
-   - Compute correlation matrices between temperature, rainfall, and yields  
+2. **Statistical Analysis** - Compute correlation matrices between temperature, rainfall, and yields  
    - Build regression models (e.g., OLS or multiple linear regression)  
      `Yield = β₀ + β₁*Temperature + β₂*Rainfall + ε`  
    - Test lagged effects (e.g., prior year rainfall impact on next year’s yield)  
 
-3. **Visualization and Presentation**  
-   - Time-series line charts for yield vs. climate per crop  
+3. **Visualization and Presentation** - Time-series line charts for yield vs. climate per crop  
    - Heatmaps showing correlation strength per region and crop type  
    - Interactive maps (optional) of average yield changes over years  
+
+4. **Crop Sensitivity & Risk Assessment** - **Vulnerability Matrix:** Develop a comparative ranking system to categorize crops by sensitivity (e.g., *High Risk*, *Moderate*, *Resilient*).  
+   - **Regional Disparity Analysis:** Compare rain-fed crops (e.g., Wheat) vs. irrigated crops (e.g., Corn/Cotton) to isolate the specific impact of meteorological drought versus general warming.  
 
 ---
 
@@ -81,8 +75,7 @@ The project will utilize two primary datasets:
 
 ## *Expected Outcomes*
 - Quantitative assessment of how temperature and precipitation variations impact crop yield  
-- Identification of crops most sensitive to heat or rainfall reduction  
-- Regional insights into climate vulnerability of agriculture  
+- **A ranked "Vulnerability Matrix" identifying which crops are most at risk** - Regional insights into climate vulnerability of agriculture  
 - Policy-relevant findings on where adaptive strategies (irrigation, drought-resistant crops) are most needed  
 - Foundation for predictive models linking climate change indicators to future yield projections  
 
@@ -98,5 +91,3 @@ The project will utilize two primary datasets:
 ---
 
 This project will provide empirical evidence on **how climate variability affects agricultural productivity in Türkiye**, supporting efforts toward sustainable agriculture and climate adaptation policy-making.
-
----
