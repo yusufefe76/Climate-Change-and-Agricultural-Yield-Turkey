@@ -1,69 +1,126 @@
 # Analysis of Global Happiness and Economic Freedom
 
-## *Project Idea*
-This project aims to investigate the relationship between a nation's **happiness score** and its **economic freedom**. While GDP is often used as the primary proxy for well-being, this project hypothesizes that structural economic factors—such as **Property Rights**, **Business Freedom**, and **Government Integrity**—have a direct and significant correlation with a population's happiness.
+## Project Idea  
 
-By merging the *World Happiness Report* with the *Index of Economic Freedom*, I enrich the standard happiness data to answer:
-- Is there a statistically significant difference in happiness between free and repressed economies?
-- Which specific economic freedom factor (e.g., Trade Freedom vs. Property Rights) correlates most strongly with happiness?
+This project investigates the relationship between a nation's **happiness level** and its **economic freedom**.  
+Instead of relying only on GDP as a proxy for well-being, the project focuses on structural economic factors—such as **Property Rights**, **Business Freedom**, and **Government Integrity**—and examines how they relate to how happy people are in different countries.
 
----
+By merging the *World Happiness Report* with the *Index of Economic Freedom*, the project aims to answer:
 
-## *Description of Data*
-
-The project utilizes two primary datasets sourced from Kaggle to satisfy the enrichment requirement. The analysis focuses on the year **2019** to ensure temporal consistency between the two sources.
-
-### *1. World Happiness Report (Primary Dataset)*
-- **Source:** Kaggle (PromptCloudHQ/world-happiness-report-2019)
-- **Content:** Survey data from 156 countries ranking their happiness levels.
-- **Key Variables:** `Country`, `Happiness_Score` (Ladder), `GDP per capita`, `Social support`, `Healthy life expectancy`.
-
-### *2. Economic Freedom Index (Enrichment Dataset)*
-- **Source:** Kaggle (Heritage Foundation / lewisduncan93)
-- **Content:** A comprehensive scoring of economic freedoms based on rule of law, government size, regulatory efficiency, and open markets.
-- **Key Variables:** `Country`, `Index Score` (Overall), `Property Rights`, `Business Freedom`, `Tax Burden`, `Government Integrity`.
-- **Enrichment Plan:** These datasets are merged using a standardized **`Country`** column to map economic policies directly to happiness outcomes.
+- Is there a statistically significant difference in **happiness rankings** between more free and less free economies?
+- Which specific economic freedom factors (e.g., **Property Rights**, **Trade Freedom**) are most strongly associated with happiness?
 
 ---
 
-## *Plan*
+## Description of Data
 
-### *1. Data Collection & Cleaning (Completed)*
-- **Ingestion:** Automated download using `kagglehub` API.
-- **Encoding Handling:** Managed `Latin-1` vs `UTF-8` encoding issues common in country-level datasets.
-- **Standardization:**
-  - Standardized country names (e.g., mapping "Turkiye" to "Turkey", "USA" to "United States").
-  - Handled column naming discrepancies (e.g., `Country (region)` vs `Country Name`).
-- **Merging:** Successfully merged datasets via an inner join, resulting in a clean dataset of **~140+ countries**.
+The analysis uses two primary datasets from Kaggle and focuses on the year **2019** to keep everything temporally consistent.
 
-### *2. Exploratory Data Analysis (Completed)*
-- **Correlation Matrix:** Computed Pearson correlations to identify strong relationships.
-  - *Preliminary Finding:* `Property Rights` and `Index Score` showed strong positive correlations with Happiness.
-- **Visualizations:**
-  - **Heatmap:** To visualize the strength of relationships between economic sub-factors and happiness.
-  - **Scatter Plots:** Plotted `Index Score` vs. `Happiness_Score` to observe the linear trend.
+### 1. World Happiness Report (Primary Dataset)
 
-### *3. Hypothesis Testing (Completed)*
-- **Hypothesis:** Countries with "High Economic Freedom" (above median) have higher happiness scores than those with "Low Economic Freedom".
-- **Method:** Independent T-Test (Two-sample).
-- **Result:** The T-Test yielded a **p-value < 0.05**, rejecting the null hypothesis. This statistically confirms that economic freedom is associated with higher happiness.
+- **Source:** Kaggle – `PromptCloudHQ/world-happiness-report-2019`  
+- **Content:** Survey-based happiness rankings for countries around the world.  
+- **Key Variables (after cleaning/renaming):**
+  - `Country` – Country name (standardized).
+  - `Happiness_Rank` – Rank of the country in the happiness report (1 = happiest).
+  - Additional variables available in the raw dataset include: `GDP per capita`, `Social support`, `Healthy life expectancy`, etc. (not all are used yet in this version).
 
-### *4. Machine Learning Models (Planned: Jan 02)*
-- **Regression Analysis:** Build a Linear Regression model to predict a country's `Happiness Score` based on its specific economic freedom sub-scores (e.g., Property Rights, Tax Burden).
-- **Clustering:** Use K-Means Clustering to group countries into categories such as "High Income/Low Happiness" vs. "Medium Income/High Happiness" to detect anomalies.
+### 2. Economic Freedom Index (Enrichment Dataset)
 
----
+- **Source:** Kaggle – `lewisduncan93/the-economic-freedom-index` (Heritage Foundation data)  
+- **Content:** Scores of economic freedom based on rule of law, government size, regulatory efficiency, and openness of markets.  
+- **Key Variables (after cleaning/renaming):**
+  - `Country` – Country name (standardized).
+  - `Year` – Year of the index (filtered to **2019**).
+  - `Index Score` – Overall economic freedom score.
+  - Sub-scores such as `Property Rights`, `Business Freedom`, `Tax Burden`, `Government Integrity`, etc. (to be used in later stages for deeper analysis).
 
-## *Tools & Technologies*
-- **Data Manipulation:** `pandas`, `numpy`
-- **Data Ingestion:** `kagglehub`, `os`
-- **Visualization:** `seaborn`, `matplotlib`
-- **Statistical Analysis:** `scipy.stats` (T-Tests)
-- **Environment:** Spyder / Jupyter Notebook
+### Enrichment & Merge
+
+- Country names are standardized (e.g., `"Turkiye" → "Turkey"`, `"Korea, South" → "South Korea"`).
+- The datasets are merged with an **inner join** on the `Country` column.
+- The final merged dataset contains **≈145 countries**, each with both happiness rank and economic freedom metrics.
 
 ---
 
-## *How to Run*
-1. Install dependencies:
-   ```bash
-   pip install pandas seaborn matplotlib scipy kagglehub
+## Plan & Current Progress
+
+### 1. Data Collection & Cleaning ✅
+
+- Automated download via **`kagglehub`**.
+- Multiple encodings handled (`UTF-8` vs `Latin-1`).
+- Column names stripped of extra spaces and harmonized:
+  - Examples: `Country (region)` / `Country or region` → `Country`  
+    `Score` / `Ladder` → `Happiness_Rank`  
+    `Name` / `Country Name` → `Country`  
+    `Overall Score` → `Index Score`
+- Duplicate columns removed after renaming.
+- Filtered the economic freedom dataset to **Year = 2019** and merged via `Country`.
+
+### 2. Exploratory Data Analysis (EDA) ✅
+
+- Basic descriptive statistics for `Happiness_Rank` and `Index Score`.
+- **Scatter plot**:
+  - X-axis: `Index Score` (higher = more economically free).  
+  - Y-axis: `Happiness_Rank` (lower rank = happier), with the Y-axis **inverted** so “better” ranks appear higher on the plot.
+  - A regression line is added to visualize the trend.
+- Planned/optional: correlation matrix and heatmaps between happiness and economic sub-scores (e.g., `Property Rights`, `Business Freedom`).
+
+### 3. Hypothesis Testing ✅
+
+- **Research Question:**  
+  > Do countries with higher economic freedom have **better (lower)** happiness ranks than countries with lower economic freedom?
+
+- **Grouping Strategy:**
+  - Compute the median of `Index Score`.
+  - Countries with `Index Score ≥ median` → **High Freedom Group**.
+  - Countries with `Index Score < median` → **Low Freedom Group**.
+
+- **Statistical Method:**
+  - Two-sample **Welch t-test**  
+    (`scipy.stats.ttest_ind(high_group, low_group, equal_var=False)`),  
+    which does **not** assume equal variances between the groups.
+  - Outcome variable: `Happiness_Rank` (lower rank = better/happier).
+
+- **Key Result (example run):**
+  - High Freedom Group: mean happiness rank ≈ **47** (better).  
+  - Low Freedom Group: mean happiness rank ≈ **104** (worse).  
+  - p-value is extremely small (p < 0.05, effectively ~0), so:
+    - The null hypothesis (“no difference in happiness ranks between groups”) is **rejected**.
+    - Interpretation: **More economically free countries tend to rank significantly higher (happier) in the World Happiness Report.**
+
+> Note: Since `Happiness_Rank` is an ordinal rank, non-parametric alternatives such as the Mann–Whitney U test could also be considered in future extensions. For this version, the Welch t-test provides a clear and interpretable comparison.
+
+### 4. Machine Learning & Deeper Analysis (Planned)
+
+Planned for a later stage:
+
+- **Regression Models**
+  - Linear or regularized regression models predicting `Happiness_Rank` from economic freedom sub-scores (e.g., `Property Rights`, `Business Freedom`, `Tax Burden`, `Government Integrity`).
+  - Interpretation of feature coefficients to see which dimensions of economic freedom are most associated with better happiness ranks.
+
+- **Clustering**
+  - K-Means clustering of countries using both economic and happiness variables.
+  - Example clusters:  
+    - “High Freedom / High Happiness”  
+    - “High Freedom / Lower Happiness” (outliers)  
+    - “Low Freedom / Low Happiness”, etc.
+
+---
+
+## Tools & Technologies
+
+- **Data Manipulation:** `pandas`, `numpy`  
+- **Data Ingestion:** `kagglehub`, `os`  
+- **Visualization:** `seaborn`, `matplotlib`  
+- **Statistical Analysis:** `scipy.stats` (Welch t-test, and possibly non-parametric tests in future work)  
+- **Environment:** Spyder / Jupyter Notebook (Python 3.x)
+
+---
+
+## How to Run
+
+### 1. Install Dependencies
+
+```bash
+pip install pandas numpy seaborn matplotlib scipy kagglehub
