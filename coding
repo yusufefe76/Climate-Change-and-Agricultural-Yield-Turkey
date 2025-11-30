@@ -1,3 +1,11 @@
+#!/usr/bin/env python3
+# -*- coding: utf-8 -*-
+"""
+Created on Mon Dec  1 00:01:16 2025
+
+@author: yusuf
+"""
+
 #%% 1. ADIM: Kütüphaneler ve Veri İndirme
 import kagglehub
 import pandas as pd
@@ -45,8 +53,8 @@ econ_df.columns  = [c.strip() for c in econ_df.columns]
 rename_map_happy = {
     'Country (region)': 'Country',
     'Country or region': 'Country',
-    'Ladder': 'Happiness_Rank',      # DÜZELTME: Artık buna RANK diyoruz
-    'Score': 'Happiness_Rank',       # Eğer Score varsa bile bu veri setinde rank veriyor
+    'Ladder': 'Happiness_Rank',      # Artık buna RANK diyoruz
+    'Score': 'Happiness_Rank',       # Varsa, bu veri setinde rank gibi kullanacağız
 }
 
 rename_map_econ = {
@@ -98,7 +106,6 @@ if 'Country' in happy_df.columns and 'Country' in econ_2019.columns:
 else:
     print("❌ HATA: Country sütunu bulunamadı.")
 
-
 #%% 3. ADIM: EDA (Grafikler)
 print("\n3. Grafikler hazırlanıyor...")
 sns.set_style("whitegrid")
@@ -108,10 +115,15 @@ if 'Index Score' in merged_df.columns and 'Happiness_Rank' in merged_df.columns:
     plt.figure(figsize=(10, 6))
     
     # Sıralama olduğu için Y eksenini ters çevirelim (1 numara en üstte olsun)
-    sns.regplot(data=merged_df, x='Index Score', y='Happiness_Rank', 
-                line_kws={"color": "red"}, scatter_kws={'alpha':0.6})
+    sns.regplot(
+        data=merged_df,
+        x='Index Score',
+        y='Happiness_Rank',
+        line_kws={"color": "red"},
+        scatter_kws={'alpha': 0.6}
+    )
     
-    plt.gca().invert_yaxis() # EKSENİ TERS ÇEVİRİYORUZ (1 Numara Yukarı)
+    plt.gca().invert_yaxis()  # 1 numara yukarıda olacak
     
     plt.title("Ekonomik Özgürlük vs Mutluluk Sıralaması")
     plt.xlabel("Ekonomik Özgürlük Skoru (Yüksek = Özgür)")
@@ -125,11 +137,21 @@ print("\n4. Hipotez Testi Sonuçları:")
 if 'Index Score' in merged_df.columns and 'Happiness_Rank' in merged_df.columns:
     threshold = merged_df['Index Score'].median()
     
-    # Özgürlüğü Yüksek ve Düşük Olanlar
-    group_high_freedom = merged_df[merged_df['Index Score'] >= threshold]['Happiness_Rank']
-    group_low_freedom = merged_df[merged_df['Index Score'] < threshold]['Happiness_Rank']
+    # Özgürlüğü Yüksek ve Düşük Olanlar (NaN'leri atıyoruz)
+    group_high_freedom = merged_df.loc[
+        merged_df['Index Score'] >= threshold, 'Happiness_Rank'
+    ].dropna()
     
-    t_stat, p_val = stats.ttest_ind(group_high_freedom, group_low_freedom)
+    group_low_freedom = merged_df.loc[
+        merged_df['Index Score'] < threshold, 'Happiness_Rank'
+    ].dropna()
+    
+    # Welch t-test (varyanslar eşit varsayılmıyor)
+    t_stat, p_val = stats.ttest_ind(
+        group_high_freedom,
+        group_low_freedom,
+        equal_var=False
+    )
     
     high_mean = group_high_freedom.mean()
     low_mean = group_low_freedom.mean()
@@ -137,7 +159,7 @@ if 'Index Score' in merged_df.columns and 'Happiness_Rank' in merged_df.columns:
     print("-" * 50)
     print(f"Yüksek Özgürlük Grubu Ort. Sıralaması: {high_mean:.1f}. Sıra (Daha İyi)")
     print(f"Düşük Özgürlük Grubu Ort. Sıralaması : {low_mean:.1f}. Sıra (Daha Kötü)")
-    print(f"P-Değeri: {p_val:.10f}")
+    print(f"P-Değeri: {p_val:.2e}")  # bilimsel gösterim
     print("-" * 50)
     
     # Yorumlama Mantığı: RANK düştükçe mutluluk artar
