@@ -16,7 +16,7 @@ The project will utilize two primary datasets:
 ### *Agricultural Production Dataset (Yield Statistics)* - **Source:** https://data.tuik.gov.tr/  
 - **Coverage:** Annual crop yield (kg/decare) for key crops such as wheat, barley, corn, cotton, sunflower, etc.  
 - **Geographical Unit:** Province or NUTS-2 regional level (to be aggregated into 7 regions if needed)  
-- **Temporal Range:** 2005 – 2024  
+- **Temporal Range:** 2011 – 2024  
 - **Variables:** - Crop type  
   - Region/Province code  
   - Year  
@@ -24,7 +24,7 @@ The project will utilize two primary datasets:
 
 ### *Meteorological Dataset (Climate Indicators)* - **Source:** https://www.mgm.gov.tr/veridegerlendirme/il-ve-ilceler-istatistik.aspx  
 - **Coverage:** Monthly or annual average temperature (°C) and total precipitation (mm) per province  
-- **Temporal Range:** 2005 – 2024  
+- **Temporal Range:** 2011 – 2024  
 - **Variables:** - Province name  
   - Average temperature  
   - Total precipitation  
