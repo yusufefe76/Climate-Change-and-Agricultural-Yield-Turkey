@@ -1,126 +1,140 @@
-# Analysis of Global Happiness and Economic Freedom
+# Global Happiness & Economic Freedom (2019) — Statistical Testing + ML
 
-## Project Idea  
-
-This project investigates the relationship between a nation's **happiness level** and its **economic freedom**.  
-Instead of relying only on GDP as a proxy for well-being, the project focuses on structural economic factors—such as **Property Rights**, **Business Freedom**, and **Government Integrity**—and examines how they relate to how happy people are in different countries.
-
-By merging the *World Happiness Report* with the *Index of Economic Freedom*, the project aims to answer:
-
-- Is there a statistically significant difference in **happiness rankings** between more free and less free economies?
-- Which specific economic freedom factors (e.g., **Property Rights**, **Trade Freedom**) are most strongly associated with happiness?
+This project analyzes how a country’s **happiness** relates to its **economic freedom** in **2019**, using the *World Happiness Report* and the *Index of Economic Freedom*. Beyond GDP alone, the analysis focuses on structural freedom dimensions like **Property Rights**, **Business Freedom**, and **Government Integrity**, and evaluates both statistical differences and predictive power.
 
 ---
 
-## Description of Data
+## Data Sources (2019)
 
-The analysis uses two primary datasets from Kaggle and focuses on the year **2019** to keep everything temporally consistent.
+All analysis is restricted to **2019** to keep the datasets temporally consistent.
 
-### 1. World Happiness Report (Primary Dataset)
+1) **World Happiness Report 2019** (Kaggle)  
+- Dataset: `PromptCloudHQ/world-happiness-report-2019`  
+- Key fields used:
+  - `Country`
+  - `Happiness_Rank` (ordinal: 1 = happiest)
+  - `Happiness_Score` (continuous: higher = happier)
+  - Optional WHR components (if included): `GDP per capita`, `Social support`, `Healthy life expectancy`, etc.
 
-- **Source:** Kaggle – `PromptCloudHQ/world-happiness-report-2019`  
-- **Content:** Survey-based happiness rankings for countries around the world.  
-- **Key Variables (after cleaning/renaming):**
-  - `Country` – Country name (standardized).
-  - `Happiness_Rank` – Rank of the country in the happiness report (1 = happiest).
-  - Additional variables available in the raw dataset include: `GDP per capita`, `Social support`, `Healthy life expectancy`, etc. (not all are used yet in this version).
+2) **Index of Economic Freedom** (Heritage Foundation / Kaggle)  
+- Dataset: `lewisduncan93/the-economic-freedom-index`  
+- Key fields used:
+  - `Country`, `Year` (filtered to 2019)
+  - `Index_Score` (overall freedom score)
+  - Sub-scores such as `Property Rights`, `Business Freedom`, `Government Integrity`, `Trade Freedom`, etc.
 
-### 2. Economic Freedom Index (Enrichment Dataset)
-
-- **Source:** Kaggle – `lewisduncan93/the-economic-freedom-index` (Heritage Foundation data)  
-- **Content:** Scores of economic freedom based on rule of law, government size, regulatory efficiency, and openness of markets.  
-- **Key Variables (after cleaning/renaming):**
-  - `Country` – Country name (standardized).
-  - `Year` – Year of the index (filtered to **2019**).
-  - `Index Score` – Overall economic freedom score.
-  - Sub-scores such as `Property Rights`, `Business Freedom`, `Tax Burden`, `Government Integrity`, etc. (to be used in later stages for deeper analysis).
-
-### Enrichment & Merge
-
-- Country names are standardized (e.g., `"Turkiye" → "Turkey"`, `"Korea, South" → "South Korea"`).
-- The datasets are merged with an **inner join** on the `Country` column.
-- The final merged dataset contains **≈145 countries**, each with both happiness rank and economic freedom metrics.
+> Notes on correctness: `Happiness_Score` is treated as the primary continuous outcome. `Happiness_Rank` is used as an ordinal robustness outcome.
 
 ---
 
-## Plan & Current Progress
+## What This Repo Does
 
-### 1. Data Collection & Cleaning ✅
+### 1) Data Cleaning & Merge
+- Downloads data via `kagglehub`.
+- Handles common encoding issues (UTF-8 vs Latin-1).
+- Standardizes country names (e.g., `Turkiye → Turkey`, `Korea, South → South Korea`).
+- Filters the Economic Freedom dataset to **Year = 2019**.
+- Merges with an **inner join** on `Country`.
+- Final merged dataset contains **~145 countries** with both happiness and freedom metrics.
 
-- Automated download via **`kagglehub`**.
-- Multiple encodings handled (`UTF-8` vs `Latin-1`).
-- Column names stripped of extra spaces and harmonized:
-  - Examples: `Country (region)` / `Country or region` → `Country`  
-    `Score` / `Ladder` → `Happiness_Rank`  
-    `Name` / `Country Name` → `Country`  
-    `Overall Score` → `Index Score`
-- Duplicate columns removed after renaming.
-- Filtered the economic freedom dataset to **Year = 2019** and merged via `Country`.
-
-### 2. Exploratory Data Analysis (EDA) ✅
-
-- Basic descriptive statistics for `Happiness_Rank` and `Index Score`.
-- **Scatter plot**:
-  - X-axis: `Index Score` (higher = more economically free).  
-  - Y-axis: `Happiness_Rank` (lower rank = happier), with the Y-axis **inverted** so “better” ranks appear higher on the plot.
-  - A regression line is added to visualize the trend.
-- Planned/optional: correlation matrix and heatmaps between happiness and economic sub-scores (e.g., `Property Rights`, `Business Freedom`).
-
-### 3. Hypothesis Testing ✅
-
-- **Research Question:**  
-  > Do countries with higher economic freedom have **better (lower)** happiness ranks than countries with lower economic freedom?
-
-- **Grouping Strategy:**
-  - Compute the median of `Index Score`.
-  - Countries with `Index Score ≥ median` → **High Freedom Group**.
-  - Countries with `Index Score < median` → **Low Freedom Group**.
-
-- **Statistical Method:**
-  - Two-sample **Welch t-test**  
-    (`scipy.stats.ttest_ind(high_group, low_group, equal_var=False)`),  
-    which does **not** assume equal variances between the groups.
-  - Outcome variable: `Happiness_Rank` (lower rank = better/happier).
-
-- **Key Result (example run):**
-  - High Freedom Group: mean happiness rank ≈ **47** (better).  
-  - Low Freedom Group: mean happiness rank ≈ **104** (worse).  
-  - p-value is extremely small (p < 0.05, effectively ~0), so:
-    - The null hypothesis (“no difference in happiness ranks between groups”) is **rejected**.
-    - Interpretation: **More economically free countries tend to rank significantly higher (happier) in the World Happiness Report.**
-
-> Note: Since `Happiness_Rank` is an ordinal rank, non-parametric alternatives such as the Mann–Whitney U test could also be considered in future extensions. For this version, the Welch t-test provides a clear and interpretable comparison.
-
-### 4. Machine Learning & Deeper Analysis (Planned)
-
-Planned for a later stage:
-
-- **Regression Models**
-  - Linear or regularized regression models predicting `Happiness_Rank` from economic freedom sub-scores (e.g., `Property Rights`, `Business Freedom`, `Tax Burden`, `Government Integrity`).
-  - Interpretation of feature coefficients to see which dimensions of economic freedom are most associated with better happiness ranks.
-
-- **Clustering**
-  - K-Means clustering of countries using both economic and happiness variables.
-  - Example clusters:  
-    - “High Freedom / High Happiness”  
-    - “High Freedom / Lower Happiness” (outliers)  
-    - “Low Freedom / Low Happiness”, etc.
+### 2) Exploratory Data Analysis (EDA)
+- Descriptive statistics for happiness and freedom variables.
+- Visualizations:
+  - `Index_Score` vs `Happiness_Score` (main relationship plot)
+  - `Index_Score` vs `Happiness_Rank` (rank-based robustness; y-axis inverted so “happier” appears higher)
+- Optional: correlation heatmaps between happiness outcomes and freedom sub-scores.
 
 ---
 
-## Tools & Technologies
+## Hypothesis Testing (Completed)
 
-- **Data Manipulation:** `pandas`, `numpy`  
-- **Data Ingestion:** `kagglehub`, `os`  
-- **Visualization:** `seaborn`, `matplotlib`  
-- **Statistical Analysis:** `scipy.stats` (Welch t-test, and possibly non-parametric tests in future work)  
-- **Environment:** Spyder / Jupyter Notebook (Python 3.x)
+### Core Research Question
+**Do countries with higher economic freedom have higher happiness (better rank / higher score) than countries with lower economic freedom?**
+
+### Grouping Strategy
+- Compute the median of `Index_Score`
+- `Index_Score ≥ median` → **High Freedom**
+- `Index_Score < median` → **Low Freedom**
+
+### Statistical Tests
+- **Welch Two-Sample t-test** (does not assume equal variances)
+- **Mann–Whitney U** (non-parametric robustness; useful since ranks are ordinal)
+- Effect size (Cohen’s d) reported for mean-based comparisons
+
+### Key Finding (Observed)
+Using `Happiness_Rank` as outcome:
+- High Freedom group mean rank ≈ **47** (better/happier)
+- Low Freedom group mean rank ≈ **104** (worse/less happy)
+- p-value extremely small (p < 0.05), rejecting the null hypothesis  
+**Conclusion:** More economically free countries tend to be significantly happier (as measured by 2019 happiness ranks).
+
+### Extended Hypothesis Testing (Completed)
+To move beyond the overall index:
+- Repeat the same **High vs Low** comparisons for each freedom sub-score:
+  - e.g., `Property Rights`, `Business Freedom`, `Government Integrity`, `Trade Freedom`, etc.
+- Apply **multiple-comparison correction** (Holm or Benjamini–Hochberg FDR) to control false positives.
+- Output: a results table with raw p-values, corrected p-values, and effect sizes for each metric.
+
+---
+
+## Machine Learning (Completed)
+
+ML is used to answer the “which factors matter most?” question more directly and to test predictive strength.
+
+### Targets
+- Primary: `Happiness_Score` (regression; preferred because it is continuous)
+- Secondary (optional): categorize happiness into groups (classification):
+  - e.g., High vs Low happiness (median split) or Top/Bottom tercile
+
+### Features
+- Main feature set: Economic freedom metrics
+  - Overall: `Index_Score`
+  - Sub-scores: `Property Rights`, `Government Integrity`, `Business Freedom`, etc.
+- Optional second feature set: include WHR components to compare explanatory power
+
+### Models Trained
+**Regression**
+- Linear Regression (baseline)
+- Ridge / Lasso / Elastic Net (handles correlated predictors; Lasso/Elastic Net adds feature selection)
+- Random Forest Regressor (nonlinear, interaction-friendly)
+- Gradient Boosting Regressor (strong tabular performance; captures nonlinear patterns)
+
+**Classification (optional track)**
+- Logistic Regression
+- Random Forest / Gradient Boosting Classifier
+
+### Validation & Metrics
+Because the dataset is relatively small (~145 rows), evaluation emphasizes stability:
+- **k-fold cross-validation** (typically 5-fold or 10-fold)
+- Regression metrics:
+  - MAE, RMSE, R²
+- Classification metrics (if used):
+  - Accuracy, F1, ROC-AUC
+- Optional rank agreement:
+  - Spearman correlation between predicted and true ranks (robust check)
+
+### Interpretability (Completed)
+To identify the freedom dimensions most associated with happiness:
+- Linear models: standardized coefficients
+- Tree models: permutation feature importance
+- Optional: SHAP (if enabled) for local + global explanations
+
+---
+
+## Outputs
+The pipeline produces:
+- Clean merged dataset (2019)
+- EDA figures (scatterplots + optional correlation heatmaps)
+- Hypothesis testing tables:
+  - overall index test
+  - per-subscore tests with corrected p-values
+- ML evaluation summaries (cross-validated metrics)
+- Feature importance / interpretability outputs
 
 ---
 
 ## How to Run
 
-### 1. Install Dependencies
-
+### 1) Install Dependencies
 ```bash
-pip install pandas numpy seaborn matplotlib scipy kagglehub
+pip install pandas numpy matplotlib seaborn scipy scikit-learn kagglehub
